@@ -8,10 +8,13 @@ class MealsScreen extends StatelessWidget {
     super.key,
     this.title,
     required this.meals,
+    required this.onToggleFavorite,
   });
 
   final String? title;
   final List<Meal> meals;
+
+  final void Function(Meal meal) onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +29,10 @@ class MealsScreen extends StatelessWidget {
     //If the list is not empty:
     Widget content = ListView.builder(
         itemCount: meals.length,
-        itemBuilder: ((context, index) => MealItem(meals[index])));
+        itemBuilder: ((context, index) => MealItem(
+              meals[index],
+              onToggleFavorite: onToggleFavorite,
+            )));
 
     //If the list is empty:
     if (meals.isEmpty) {
