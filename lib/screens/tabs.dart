@@ -1,14 +1,19 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:meals_app_v2/data/DUMMY_DATA.dart';
+
 import 'package:meals_app_v2/screens/categories.dart';
+import 'package:meals_app_v2/screens/filters.dart';
 import 'package:meals_app_v2/screens/meals.dart';
 import 'package:meals_app_v2/widgets/main_drawer.dart';
 
 import '../models/meal.dart';
+
+const kInicialFIlters = {
+  Filter.glutenFree: false,
+  Filter.lactoseFree: false,
+  Filter.vegan: false,
+  Filter.vegetarian: false,
+};
 
 class TabsScreen extends StatefulWidget {
   const TabsScreen({super.key});
@@ -20,6 +25,8 @@ class TabsScreen extends StatefulWidget {
 class _TabsScreenState extends State<TabsScreen> {
   String activePageTitle = 'Pick your category';
   int selectedPageIndex = 0;
+
+  Map<Filter, bool> _selectedFilters = kInicialFIlters;
 
   List<Meal> _favoriteMeals = [];
 
@@ -46,14 +53,38 @@ class _TabsScreenState extends State<TabsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    List<Meal> filteredMeals = dummyMeals.where(
+      (meal) {
+        if (!meal.isGlutenFree && _selectedFilters[Filter.glutenFree]!) {
+          return false;
+        }
+        if (!meal.isLactoseFree && _selectedFilters[Filter.lactoseFree]!) {
+          return false;
+        }
+        if (!meal.isVegan && _selectedFilters[Filter.vegan]!) {
+          return false;
+        }
+        if (!meal.isVegetarian && _selectedFilters[Filter.vegetarian]!) {
+          return false;
+        }
+        return true;
+      },
+    ).toList();
+
     Widget activePage = CategoriesScreen(
+      availableFilteredMeals: filteredMeals,
       onToggleFavorite: _toggleFavorite,
     );
 
-    void _setScreen(String identifier) {
+    void _setScreen(String identifier) async {
+      Navigator.of(context).pop();
       if (identifier == 'filters') {
-      } else {
-        Navigator.of(context).pop();
+        final result = await Navigator.of(context).push<Map<Filter, bool>>(
+            MaterialPageRoute(builder: ((context) => const FilterScreen())));
+
+        setState(() {
+          _selectedFilters = result ?? kInicialFIlters;
+        });
       }
     }
 
@@ -66,6 +97,7 @@ class _TabsScreenState extends State<TabsScreen> {
 
     if (selectedPageIndex == 0) {
       activePage = CategoriesScreen(
+        availableFilteredMeals: filteredMeals,
         onToggleFavorite: _toggleFavorite,
       );
       activePageTitle = 'Pick your category';
