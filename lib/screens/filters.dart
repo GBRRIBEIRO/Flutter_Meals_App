@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meals_app_v2/providers/filters_provider.dart';
 
-enum Filter {
-  lactoseFree,
-  glutenFree,
-  vegan,
-  vegetarian,
-}
-
-bool _glutenFreeFilterSet = false;
-bool _lactoseFreeFilterSet = false;
-bool _veganFilterSet = false;
-bool _vegetarianFilterSet = false;
-
-class FilterScreen extends StatefulWidget {
+class FilterScreen extends ConsumerStatefulWidget {
   const FilterScreen({super.key});
 
   @override
-  State<FilterScreen> createState() => _FilterScreenState();
+  ConsumerState<FilterScreen> createState() => _FilterScreenState();
 }
 
-class _FilterScreenState extends State<FilterScreen> {
+class _FilterScreenState extends ConsumerState<FilterScreen> {
+  var _glutenFreeFilterSet = false;
+  var _lactoseFreeFilterSet = false;
+  var _veganFilterSet = false;
+  var _vegetarianFilterSet = false;
+
+  @override
+  void initState() {
+    super.initState();
+    var activeFilters = ref.read(filtersProvider);
+
+    _glutenFreeFilterSet = activeFilters[Filter.glutenFree]!;
+    _lactoseFreeFilterSet = activeFilters[Filter.lactoseFree]!;
+    _veganFilterSet = activeFilters[Filter.vegan]!;
+    _vegetarianFilterSet = activeFilters[Filter.vegetarian]!;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,15 +35,16 @@ class _FilterScreenState extends State<FilterScreen> {
       //   Navigator.of(context)
       //       .pushReplacement(MaterialPageRoute(builder: (_) => TabsScreen()));
       // }),
+
       body: WillPopScope(
         onWillPop: () async {
-          Navigator.of(context).pop({
+          ref.read(filtersProvider.notifier).setFilters({
             Filter.glutenFree: _glutenFreeFilterSet,
             Filter.lactoseFree: _lactoseFreeFilterSet,
             Filter.vegan: _veganFilterSet,
             Filter.vegetarian: _vegetarianFilterSet
           });
-          return false;
+          return true;
         },
         child: Column(children: [
           SwitchListTile(
